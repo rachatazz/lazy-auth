@@ -33,6 +33,5 @@ func (r roleGuard) ValidateRole(role ...string) gin.HandlerFunc {
 			}
 		}
 		handler.HandleError(c, errs.NewForbiddenError("forbidden"))
-		return
 	}
 }

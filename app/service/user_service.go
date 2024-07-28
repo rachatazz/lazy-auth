@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"lazy-auth/app/errs"
 	"lazy-auth/app/model"
@@ -177,6 +178,7 @@ func (s userService) ChangePassword(
 	}
 
 	user.PasswordHash, _ = common.HashPassword(changePassReq.NewPassword)
+	user.ChangePasswordAt = time.Now()
 	err = s.userRepository.Update(user)
 	if err != nil {
 		zlog.Error(err)

@@ -86,8 +86,14 @@ func (h userHandler) UpdateMe(c *gin.Context) {
 		HandleError(c, err)
 		return
 	}
-	h.userService.UpdateUserById(session.(*repository.Session).UserID, body)
-	HandleOk(c, nil, nil)
+
+	user, err := h.userService.UpdateUserById(session.(*repository.Session).UserID, body)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	HandleOk(c, user, nil)
 }
 
 func (h userHandler) ChangePassword(c *gin.Context) {
