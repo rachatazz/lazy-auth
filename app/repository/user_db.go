@@ -20,9 +20,9 @@ func (r userRepository) GetMany(query model.QueryUser) ([]User, int, error) {
 	tx := r.db.Model(&User{})
 
 	if query.OrderBy != nil {
-		orderStr := *query.OrderBy + " "
-		if query.SortBy != nil {
-			orderStr = orderStr + strings.ToUpper(*query.SortBy)
+		orderStr := *query.SortBy + " "
+		if query.OrderBy != nil {
+			orderStr = orderStr + strings.ToUpper(*query.OrderBy)
 		} else {
 			orderStr = orderStr + "DESC"
 		}
@@ -35,7 +35,7 @@ func (r userRepository) GetMany(query model.QueryUser) ([]User, int, error) {
 
 	if query.Keyword != nil {
 		tx = tx.Where(
-			"display_name ? OR first_name ILIKE ? OR last_name ILIKE ?",
+			"display_name ILIKE ? OR first_name ILIKE ? OR last_name ILIKE ?",
 			"%"+*query.Keyword+"%",
 			"%"+*query.Keyword+"%",
 			"%"+*query.Keyword+"%",
