@@ -1,6 +1,8 @@
 package service
 
 import (
+	"time"
+
 	"lazy-auth/app/errs"
 	"lazy-auth/app/model"
 	"lazy-auth/app/repository"
@@ -85,6 +87,12 @@ func (s authService) Login(body model.LoginRequest) (*model.TokenResponse, error
 	ok := common.CheckPasswordHash(body.Password, user.PasswordHash)
 	if !ok {
 		return nil, errs.NewUnauthorizedError("username or password is incorrect")
+	}
+
+	user.LastAccessAt = time.Now()
+	err = s.userRepository.Update(user)
+	if err != nil {
+		return nil, errs.NewUnexpectedError()
 	}
 
 	refreshToken := uuid.NewString()
@@ -172,7 +180,15 @@ func (s authService) RefreshToken(
 }
 
 func (s authService) Logout(logoutReq model.LogoutRequest) error {
-	session, err := s.sessionRepository.GetByRefreshToken(logoutReq.RefreshToken)
+	refreshToken, err := common.Decrypt(
+		logoutReq.RefreshToken,
+		s.configEnv.JwtRefreshTokenSecret,
+	)
+	if err != nil {
+		return errs.NewUnauthorizedError("refresh token is invalid")
+	}
+
+	session, err := s.sessionRepository.GetByRefreshToken(refreshToken)
 	if err != nil {
 		return errs.NewUnauthorizedError("refresh token is invalid")
 	}
