@@ -8,6 +8,7 @@ type AuthService interface {
 	Login(body model.LoginRequest) (*model.TokenResponse, error)
 	RefreshToken(refreshToken string) (*model.TokenResponse, error)
 	Logout(body model.LogoutRequest) error
+	ChangePassword(id string, body model.ChangePasswordRequest) error
 	ForgotPassword(body model.ForgotPasswordRequest) error
 	ResetPassword(body model.ResetPasswordRequest) error
 }

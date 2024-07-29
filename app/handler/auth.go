@@ -2,6 +2,7 @@ package handler
 
 import (
 	"lazy-auth/app/model"
+	"lazy-auth/app/repository"
 	"lazy-auth/app/service"
 
 	"github.com/gin-gonic/gin"
@@ -91,6 +92,25 @@ func (h authHandler) Logout(c *gin.Context) {
 	}
 
 	err = h.authService.Logout(body)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	HandleOk(c, nil, nil)
+}
+
+func (h authHandler) ChangePassword(c *gin.Context) {
+	session, _ := c.Get("session")
+
+	var body model.ChangePasswordRequest
+	err := ValidationPipe(c, &body, ValidateBody)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	err = h.authService.ChangePassword(session.(*repository.Session).UserID, body)
 	if err != nil {
 		HandleError(c, err)
 		return

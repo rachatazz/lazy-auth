@@ -62,6 +62,7 @@ func main() {
 		api.POST("/auth/logout", authHandler.Logout)
 		api.POST("/auth/forgot-password", authHandler.ForgotPassword)
 		api.POST("/auth/reset-password", authHandler.ResetPassword)
+		api.POST("/auth/change-password", tokenGuard.ValidateToken(), authHandler.ChangePassword)
 
 		// User
 		api.GET(
@@ -74,7 +75,6 @@ func main() {
 		api.POST("/users/admin", secretGuard.ValidateSecret(), userHandler.CreateUserAdmin)
 		api.GET("/users/me", tokenGuard.ValidateToken(), userHandler.GetMe)
 		api.PATCH("/users/me", tokenGuard.ValidateToken(), userHandler.UpdateMe)
-		api.POST("/users/change-password", tokenGuard.ValidateToken(), userHandler.ChangePassword)
 	}
 
 	r.Run(fmt.Sprintf(":%v", config.Port))

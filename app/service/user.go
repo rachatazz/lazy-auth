@@ -7,5 +7,4 @@ type UserService interface {
 	GetUsers(query model.QueryUser) (*model.UserPageResponse, error)
 	GetUserById(id string) (*model.UserResponse, error)
 	UpdateUserById(id string, body model.UpdateUserRequest) (*model.UserResponse, error)
-	ChangePassword(id string, body model.ChangePasswordRequest) (*model.UserResponse, error)
 }

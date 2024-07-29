@@ -3,7 +3,6 @@ package service
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	"lazy-auth/app/errs"
 	"lazy-auth/app/model"
@@ -156,44 +155,5 @@ func (s userService) UpdateUserById(
 		LastName:    user.LastName,
 		VerifyFlag:  user.VerifyFlag,
 	}
-	return &userResponse, nil
-}
-
-func (s userService) ChangePassword(
-	userId string,
-	changePassReq model.ChangePasswordRequest,
-) (*model.UserResponse, error) {
-	user, err := s.userRepository.GetById(userId)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errs.NewNotFoundError("user not found")
-		}
-		zlog.Error(err)
-		return nil, errs.NewUnexpectedError()
-	}
-
-	ok := common.CheckPasswordHash(changePassReq.OldPassword, user.PasswordHash)
-	if !ok {
-		return nil, errs.NewUnauthorizedError("old password is incorrect")
-	}
-
-	user.PasswordHash, _ = common.HashPassword(changePassReq.NewPassword)
-	user.ChangePasswordAt = time.Now()
-	err = s.userRepository.Update(user)
-	if err != nil {
-		zlog.Error(err)
-		return nil, errs.NewUnexpectedError()
-	}
-
-	userResponse := model.UserResponse{
-		ID:          user.ID,
-		Username:    user.Username,
-		Email:       user.Email,
-		DisplayName: user.DisplayName,
-		FirstName:   user.FirstName,
-		LastName:    user.LastName,
-		VerifyFlag:  user.VerifyFlag,
-	}
-
 	return &userResponse, nil
 }

@@ -98,7 +98,7 @@ func (s authService) Login(body model.LoginRequest) (*model.TokenResponse, error
 	}
 
 	refreshToken := uuid.NewString()
-	refreshTokenExpiresAt := common.AddTimeByDuration(s.configEnv.JwtRefreshTokenExpired)
+	refreshTokenExpiresAt := common.AddTimeByDuration(s.configEnv.JwtRefreshTokenExpiresIn)
 	session := repository.Session{
 		UserID:       user.ID,
 		RefreshToken: refreshToken,
@@ -109,7 +109,7 @@ func (s authService) Login(body model.LoginRequest) (*model.TokenResponse, error
 		return nil, errs.NewUnauthorizedError("username or password is incorrect")
 	}
 
-	tokenExpiresAt := common.AddTimeByDuration(s.configEnv.JwtTokenExpired)
+	tokenExpiresAt := common.AddTimeByDuration(s.configEnv.JwtTokenExpiresIn)
 	token := common.GenerateToken(
 		user.ID,
 		session.ID,
@@ -152,10 +152,10 @@ func (s authService) RefreshToken(
 	}
 
 	session.RefreshToken = uuid.NewString()
-	session.ExpiresAt = common.AddTimeByDuration(s.configEnv.JwtRefreshTokenExpired)
+	session.ExpiresAt = common.AddTimeByDuration(s.configEnv.JwtRefreshTokenExpiresIn)
 	s.sessionRepository.Update(session)
 
-	tokenExpiresAt := common.AddTimeByDuration(s.configEnv.JwtTokenExpired)
+	tokenExpiresAt := common.AddTimeByDuration(s.configEnv.JwtTokenExpiresIn)
 	token := common.GenerateToken(
 		session.UserID,
 		session.ID,
@@ -209,6 +209,35 @@ func (s authService) Logout(logoutReq model.LogoutRequest) error {
 		zlog.Error(err)
 		return errs.NewUnexpectedError()
 	}
+	return nil
+}
+
+func (s authService) ChangePassword(
+	userId string,
+	changePassReq model.ChangePasswordRequest,
+) error {
+	user, err := s.userRepository.GetById(userId)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errs.NewNotFoundError("user not found")
+		}
+		zlog.Error(err)
+		return errs.NewUnexpectedError()
+	}
+
+	ok := common.CheckPasswordHash(changePassReq.OldPassword, user.PasswordHash)
+	if !ok {
+		return errs.NewUnauthorizedError("old password is incorrect")
+	}
+
+	user.PasswordHash, _ = common.HashPassword(changePassReq.NewPassword)
+	user.ChangePasswordAt = time.Now()
+	err = s.userRepository.Update(user)
+	if err != nil {
+		zlog.Error(err)
+		return errs.NewUnexpectedError()
+	}
+
 	return nil
 }
 

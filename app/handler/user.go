@@ -95,22 +95,3 @@ func (h userHandler) UpdateMe(c *gin.Context) {
 
 	HandleOk(c, user, nil)
 }
-
-func (h userHandler) ChangePassword(c *gin.Context) {
-	session, _ := c.Get("session")
-
-	var body model.ChangePasswordRequest
-	err := ValidationPipe(c, &body, ValidateBody)
-	if err != nil {
-		HandleError(c, err)
-		return
-	}
-
-	_, err = h.userService.ChangePassword(session.(*repository.Session).UserID, body)
-	if err != nil {
-		HandleError(c, err)
-		return
-	}
-
-	HandleOk(c, nil, nil)
-}
