@@ -60,6 +60,8 @@ func main() {
 		api.POST("/auth/login", authHandler.Login)
 		api.POST("/auth/refresh", authHandler.RefreshToken)
 		api.POST("/auth/logout", authHandler.Logout)
+		api.POST("/auth/forgot-password", authHandler.ForgotPassword)
+		api.POST("/auth/reset-password", authHandler.ResetPassword)
 
 		// User
 		api.GET(

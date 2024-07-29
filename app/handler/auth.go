@@ -98,3 +98,37 @@ func (h authHandler) Logout(c *gin.Context) {
 
 	HandleOk(c, nil, nil)
 }
+
+func (h authHandler) ForgotPassword(c *gin.Context) {
+	var body model.ForgotPasswordRequest
+	err := ValidationPipe(c, &body, ValidateBody)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	err = h.authService.ForgotPassword(body)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	HandleOk(c, nil, nil)
+}
+
+func (h authHandler) ResetPassword(c *gin.Context) {
+	var body model.ResetPasswordRequest
+	err := ValidationPipe(c, &body, ValidateBody)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	err = h.authService.ResetPassword(body)
+	if err != nil {
+		HandleError(c, err)
+		return
+	}
+
+	HandleOk(c, nil, nil)
+}

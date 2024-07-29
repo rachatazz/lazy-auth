@@ -19,6 +19,7 @@ type ConfigEnv struct {
 	DataBaseUser           string `mapstructure:"GO_AUTH_DB_USER"                   validate:"nonzero"`
 	DataBasePassword       string `mapstructure:"GO_AUTH_DB_PASS"                   validate:"nonzero"`
 	DataBaseAutoMigrate    bool   `mapstructure:"GO_AUTH_DB_AUTO_MIGRATE"`
+	TicketExpiresIn        string `mapstructure:"GO_AUTH_TICKET_EXPIRES_IN"`
 }
 
 func ConfigService() (configEnv ConfigEnv) {
@@ -35,6 +36,7 @@ func ConfigService() (configEnv ConfigEnv) {
 	viper.SetDefault("GO_AUTH_JWT_REFRESH_TOKEN_EXPIRED", "24h")
 	viper.SetDefault("GO_AUTH_DB_PORT", "5432")
 	viper.SetDefault("GO_AUTH_DB_AUTO_MIGRATE", false)
+	viper.SetDefault("GO_AUTH_TICKET_EXPIRES_IN", "1h")
 
 	err := viper.ReadInConfig()
 	if err != nil {

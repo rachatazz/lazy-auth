@@ -1,6 +1,8 @@
 package service
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
 	"lazy-auth/app/errs"
@@ -210,10 +212,48 @@ func (s authService) Logout(logoutReq model.LogoutRequest) error {
 	return nil
 }
 
-func (s authService) ForgotPassword(model.ForgotPasswordRequest) error {
+func (s authService) ForgotPassword(forgotReq model.ForgotPasswordRequest) error {
+	user, err := s.userRepository.GetByEmail(forgotReq.Email)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
+		zlog.Error(err)
+		return errs.NewUnexpectedError()
+	}
+
+	user.Ticket = fmt.Sprintf("reset_password:%s", uuid.NewString())
+	user.TicketExpiresAt = common.AddTimeByDuration(s.configEnv.TicketExpiresIn)
+	err = s.userRepository.Update(user)
+	if err != nil {
+		zlog.Error(err)
+		return errs.NewUnexpectedError()
+	}
+
+	// TODO: Implement functionality to send tickets via email
+
 	return nil
 }
 
-func (s authService) ResetPassword(model.ResetPasswordRequest) (*model.UserResponse, error) {
-	return nil, nil
+func (s authService) ResetPassword(resetReq model.ResetPasswordRequest) error {
+	user, err := s.userRepository.GetByTicket(resetReq.Ticket)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errs.NewUnauthorizedError("ticket is invalid")
+		}
+		zlog.Error(err)
+		return errs.NewUnexpectedError()
+	}
+
+	user.PasswordHash, _ = common.HashPassword(resetReq.Password)
+	user.Ticket = ""
+	user.TicketExpiresAt = time.Time{}
+	user.ChangePasswordAt = time.Now()
+	err = s.userRepository.Update(user)
+	if err != nil {
+		zlog.Error(err)
+		return errs.NewUnexpectedError()
+	}
+
+	return nil
 }

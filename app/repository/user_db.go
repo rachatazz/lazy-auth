@@ -2,6 +2,7 @@ package repository
 
 import (
 	"strings"
+	"time"
 
 	"lazy-auth/app/model"
 
@@ -101,4 +102,22 @@ func (r userRepository) DaleteById(id string) error {
 		return tx.Error
 	}
 	return nil
+}
+
+func (r userRepository) GetByEmail(email string) (*User, error) {
+	var user User
+	tx := r.db.Where("email = ?", email).Take(&user)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	return &user, nil
+}
+
+func (r userRepository) GetByTicket(ticket string) (*User, error) {
+	var user User
+	tx := r.db.Where("ticket = ? AND ticket_expires_at > ?", ticket, time.Now()).Take(&user)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	return &user, nil
 }
